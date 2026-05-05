@@ -1,0 +1,11 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #0f1c3a; color: #f2f6ff; }
+.app-shell { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.panel, .game-wrap { background: #152b57; border: 1px solid #5d8ce7; border-radius: 12px; padding: 20px; width: min(1000px, 96vw); text-align: center; }
+button { background: #5eb3ff; color: #0b1b34; border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 700; cursor: pointer; }
+.char-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.char-card { display: flex; flex-direction: column; gap: 8px; align-items: center; background: #1c3a71; color: #fff; }
+.char-card.active { outline: 2px solid #9be6ff; }
+.avatar { width: 56px; height: 56px; border-radius: 8px; }
+.hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+canvas { width: 100%; border: 2px solid #8edcff; border-radius: 8px; background: #bde8ff; }
