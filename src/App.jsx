@@ -8,22 +8,50 @@ const PLAYER_SPEED = 4.5;
 const JUMP_POWER = -13;
 const BULLET_SPEED = 9;
 
+const ASSET_PATHS = {
+  background: '/assets/background/garden_bg.png',
+  plants: {
+    A: '/assets/plants/ice_shooter.png',
+    B: '/assets/plants/ice_shooter_2.png',
+  },
+  zombies: {
+    normal: '/assets/zombies/zombie_normal.png',
+    cone: '/assets/zombies/zombie_cone.png',
+    bucket: '/assets/zombies/zombie_bucket.png',
+    runner: '/assets/zombies/zombie_runner.png',
+    big: '/assets/zombies/zombie_big.png',
+  },
+  bullet: '/assets/bullets/ice_bullet.png',
+  ui: {
+    victory: '/assets/ui/victory_page.png',
+  },
+};
+
 const CHARACTERS = [
-  { id: 'A', name: '寒冰射手 A', color: '#56b4ff', accent: '#d4f1ff', damage: 12 },
-  { id: 'B', name: '寒冰射手 B', color: '#2a8bff', accent: '#b8efff', damage: 16 },
+  { id: 'A', name: '寒冰射手 A', color: '#56b4ff', accent: '#d4f1ff', damage: 12, assetPath: ASSET_PATHS.plants.A },
+  { id: 'B', name: '寒冰射手 B', color: '#2a8bff', accent: '#b8efff', damage: 16, assetPath: ASSET_PATHS.plants.B },
 ];
 
 const ZOMBIES = [
-  { id: 'normal', name: '普通僵尸', x: 560, y: GROUND_Y - 70, w: 46, h: 70, hp: 48, speed: 1.0, color: '#64af66' },
-  { id: 'tall', name: '瘦高僵尸', x: 680, y: GROUND_Y - 95, w: 34, h: 95, hp: 44, speed: 1.2, color: '#7dbb6d' },
-  { id: 'fat', name: '胖僵尸', x: 780, y: GROUND_Y - 80, w: 60, h: 80, hp: 65, speed: 0.7, color: '#5f9f52' },
-  { id: 'small', name: '矮小僵尸', x: 840, y: GROUND_Y - 55, w: 42, h: 55, hp: 34, speed: 1.5, color: '#83c276' },
-  { id: 'bucket', name: '戴桶僵尸', x: 910, y: GROUND_Y - 85, w: 50, h: 85, hp: 90, speed: 0.8, color: '#6aaa5f' },
+  { id: 'normal', name: '普通僵尸', x: 560, y: GROUND_Y - 70, w: 46, h: 70, hp: 48, speed: 1.0, color: '#64af66', assetPath: ASSET_PATHS.zombies.normal },
+  { id: 'cone', name: '路障僵尸', x: 680, y: GROUND_Y - 95, w: 34, h: 95, hp: 44, speed: 1.2, color: '#7dbb6d', assetPath: ASSET_PATHS.zombies.cone },
+  { id: 'bucket', name: '铁桶僵尸', x: 780, y: GROUND_Y - 80, w: 60, h: 80, hp: 65, speed: 0.7, color: '#5f9f52', assetPath: ASSET_PATHS.zombies.bucket },
+  { id: 'runner', name: '奔跑僵尸', x: 840, y: GROUND_Y - 55, w: 42, h: 55, hp: 34, speed: 1.5, color: '#83c276', assetPath: ASSET_PATHS.zombies.runner },
+  { id: 'big', name: '巨型僵尸', x: 910, y: GROUND_Y - 85, w: 50, h: 85, hp: 90, speed: 0.8, color: '#6aaa5f', assetPath: ASSET_PATHS.zombies.big },
+];
+
+const IMAGE_ASSET_PATHS = [
+  ASSET_PATHS.background,
+  ...Object.values(ASSET_PATHS.plants),
+  ...Object.values(ASSET_PATHS.zombies),
+  ASSET_PATHS.bullet,
+  ASSET_PATHS.ui.victory,
 ];
 
 function App() {
   const [screen, setScreen] = useState('start');
   const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[0]);
+  const imageAssets = useImageAssets(IMAGE_ASSET_PATHS);
 
   return (
     <div className="app-shell">
@@ -33,16 +61,18 @@ function App() {
           selected={selectedCharacter}
           onSelect={setSelectedCharacter}
           onConfirm={() => setScreen('playing')}
+          imageAssets={imageAssets}
         />
       )}
       {screen === 'playing' && (
         <GameScene
           character={selectedCharacter}
+          imageAssets={imageAssets}
           onVictory={() => setScreen('victory')}
           onBack={() => setScreen('start')}
         />
       )}
-      {screen === 'victory' && <VictoryScreen onRestart={() => setScreen('start')} />}
+      {screen === 'victory' && <VictoryScreen imageAssets={imageAssets} onRestart={() => setScreen('start')} />}
     </div>
   );
 }
@@ -51,32 +81,45 @@ function StartScreen({ onStart }) {
   return <section className="panel"><h1>Ice Shooter Garden</h1><p>寒冰射手花园防线</p><button onClick={onStart}>开始游戏</button></section>;
 }
 
-function CharacterSelect({ selected, onSelect, onConfirm }) {
+function CharacterSelect({ selected, onSelect, onConfirm, imageAssets }) {
   return (
     <section className="panel">
       <h2>选择角色</h2>
       <div className="char-grid">
-        {CHARACTERS.map((c) => (
-          <button key={c.id} className={`char-card ${selected.id === c.id ? 'active' : ''}`} onClick={() => onSelect(c)}>
-            <div className="avatar" style={{ background: c.color }} />
-            <strong>{c.name}</strong>
-            <span>伤害: {c.damage}</span>
-          </button>
-        ))}
+        {CHARACTERS.map((c) => {
+          const characterImage = imageAssets[c.assetPath];
+
+          return (
+            <button key={c.id} className={`char-card ${selected.id === c.id ? 'active' : ''}`} onClick={() => onSelect(c)}>
+              {characterImage ? (
+                <img className="avatar" src={characterImage.src} alt={c.name} />
+              ) : (
+                <div className="avatar" style={{ background: c.color }} />
+              )}
+              <strong>{c.name}</strong>
+              <span>伤害: {c.damage}</span>
+            </button>
+          );
+        })}
       </div>
       <button onClick={onConfirm}>确认进入战斗</button>
     </section>
   );
 }
 
-function GameScene({ character, onVictory, onBack }) {
+function GameScene({ character, imageAssets, onVictory, onBack }) {
   const canvasRef = useRef(null);
   const stateRef = useRef(null);
+  const imageAssetsRef = useRef(imageAssets);
   const [hp, setHp] = useState(100);
   const [wave] = useState('Wave 1/1');
   const [paused, setPaused] = useState(false);
 
   const keys = useMemo(() => ({ a: false, d: false, w: false, ' ': false, j: false }), []);
+
+  useEffect(() => {
+    imageAssetsRef.current = imageAssets;
+  }, [imageAssets]);
 
   useEffect(() => {
     stateRef.current = {
@@ -198,28 +241,19 @@ function GameScene({ character, onVictory, onBack }) {
       const s = stateRef.current;
       const p = s.player;
 
-      ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      drawBackground(ctx);
-      ctx.fillStyle = character.color;
-      ctx.fillRect(p.x, p.y, p.w, p.h);
-      ctx.fillStyle = character.accent;
-      ctx.fillRect(p.x + 10, p.y + 8, 24, 20);
+      const images = imageAssetsRef.current;
 
-      ctx.fillStyle = '#8ad9ff';
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      drawBackground(ctx, images[ASSET_PATHS.background]);
+      drawPlayer(ctx, p, character, images[character.assetPath]);
+
       s.bullets.forEach((b) => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fill();
+        drawBullet(ctx, b, images[ASSET_PATHS.bullet]);
       });
 
       s.zombies.forEach((z) => {
         if (!z.alive) return;
-        ctx.fillStyle = z.hitFlash > 0 ? '#f9e28c' : z.color;
-        ctx.fillRect(z.x, z.y, z.w, z.h);
-        if (z.id === 'bucket') {
-          ctx.fillStyle = '#8c949e';
-          ctx.fillRect(z.x + 7, z.y - 12, z.w - 14, 12);
-        }
+        drawZombie(ctx, z, images[z.assetPath]);
       });
     };
 
@@ -244,11 +278,61 @@ function GameScene({ character, onVictory, onBack }) {
   );
 }
 
-function VictoryScreen({ onRestart }) {
-  return <section className="panel"><h2>胜利！</h2><p>僵尸全部清除，寒冰射手和朋友们在花园里吃冰激凌庆祝！</p><button onClick={onRestart}>再玩一次</button></section>;
+function VictoryScreen({ imageAssets, onRestart }) {
+  const victoryImage = imageAssets[ASSET_PATHS.ui.victory];
+
+  return (
+    <section className="panel victory-panel">
+      {victoryImage && <img className="victory-image" src={victoryImage.src} alt="胜利结算页" />}
+      <h2>胜利！</h2>
+      <p>僵尸全部清除，寒冰射手和朋友们在花园里吃冰激凌庆祝！</p>
+      <button onClick={onRestart}>再玩一次</button>
+    </section>
+  );
 }
 
-function drawBackground(ctx) {
+function useImageAssets(paths) {
+  const [assets, setAssets] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    paths.forEach((path) => {
+      loadImageAsset(path, (loadedImage) => {
+        if (cancelled || !loadedImage) return;
+        setAssets((current) => ({ ...current, [path]: loadedImage }));
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paths]);
+
+  return assets;
+}
+
+function loadImageAsset(path, onLoad) {
+  const image = new Image();
+  image.decoding = 'async';
+  image.onload = () => onLoad(image);
+  image.onerror = () => {
+    // Missing PNGs are expected while artwork is being prepared; keep fallback drawings visible.
+    onLoad(null);
+  };
+  image.src = toPublicAssetUrl(path);
+}
+
+function toPublicAssetUrl(path) {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+}
+
+function drawBackground(ctx, backgroundImage) {
+  if (backgroundImage) {
+    ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT);
+    return;
+  }
+
   ctx.fillStyle = '#bde8ff';
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = '#e6f8ff';
@@ -261,6 +345,48 @@ function drawBackground(ctx) {
   ctx.fillRect(40, GROUND_Y - 170, 160, 170);
   ctx.fillStyle = '#db8d66';
   ctx.fillRect(40, GROUND_Y - 170, 160, 35);
+}
+
+function drawPlayer(ctx, player, character, characterImage) {
+  if (characterImage) {
+    ctx.drawImage(characterImage, player.x, player.y, player.w, player.h);
+    return;
+  }
+
+  ctx.fillStyle = character.color;
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillStyle = character.accent;
+  ctx.fillRect(player.x + 10, player.y + 8, 24, 20);
+}
+
+function drawBullet(ctx, bullet, bulletImage) {
+  if (bulletImage) {
+    ctx.drawImage(bulletImage, bullet.x - bullet.r, bullet.y - bullet.r, bullet.r * 2, bullet.r * 2);
+    return;
+  }
+
+  ctx.fillStyle = '#8ad9ff';
+  ctx.beginPath();
+  ctx.arc(bullet.x, bullet.y, bullet.r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawZombie(ctx, zombie, zombieImage) {
+  if (zombieImage) {
+    ctx.drawImage(zombieImage, zombie.x, zombie.y, zombie.w, zombie.h);
+    if (zombie.hitFlash > 0) {
+      ctx.fillStyle = 'rgba(249, 226, 140, 0.45)';
+      ctx.fillRect(zombie.x, zombie.y, zombie.w, zombie.h);
+    }
+    return;
+  }
+
+  ctx.fillStyle = zombie.hitFlash > 0 ? '#f9e28c' : zombie.color;
+  ctx.fillRect(zombie.x, zombie.y, zombie.w, zombie.h);
+  if (zombie.id === 'bucket') {
+    ctx.fillStyle = '#8c949e';
+    ctx.fillRect(zombie.x + 7, zombie.y - 12, zombie.w - 14, 12);
+  }
 }
 
 function rectCollide(a, b) {
