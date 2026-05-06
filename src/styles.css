@@ -6,6 +6,9 @@ button { background: #5eb3ff; color: #0b1b34; border: 0; border-radius: 8px; pad
 .char-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
 .char-card { display: flex; flex-direction: column; gap: 8px; align-items: center; background: #1c3a71; color: #fff; }
 .char-card.active { outline: 2px solid #9be6ff; }
-.avatar { width: 56px; height: 56px; border-radius: 8px; }
+.avatar { width: 56px; height: 56px; border-radius: 8px; object-fit: contain; }
 .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 canvas { width: 100%; border: 2px solid #8edcff; border-radius: 8px; background: #bde8ff; }
+
+.victory-panel { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.victory-image { width: min(520px, 100%); border-radius: 10px; object-fit: contain; }
